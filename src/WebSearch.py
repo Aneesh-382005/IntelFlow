@@ -1,80 +1,99 @@
-import pandas as pd
 import requests
-from dotenv import load_dotenv
-from bs4 import BeautifulSoup
-import os
 import re
+import time
+import csv
+from dotenv import load_dotenv
+import os
 
 load_dotenv()
+APIkey = os.getenv("SEARCH_API_KEY")
 
 emailPattern = re.compile(r'[\w\.-]+@[\w\.-]+\.\w+')
 addressPattern = re.compile(r'\d{1,5}\s[\w\s]+(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Lane|Ln|Drive|Dr|Court|Ct|Way|Square|Sq)\b')
 phonePattern = re.compile(r'(\(?\+?[0-9]*\)?)?(\s|-|\.)?[0-9]{3}(\s|-|\.)[0-9]{3}(\s|-|\.)[0-9]{4}')
 
-def PerformSearch(query):
-    APIkey = os.getenv("SEARCH_API_KEY")
-    searchURL = f"https://serpapi.com/search"
-
-    parameters = {
-        'q': query, 
-        'api_key': APIkey, 
-        'engine': 'google'
+def SearchResults(companyName, searchQuery=None):
+    searchQuery = f"{companyName} {searchQuery}"
+    params = {
+        "engine": "google",
+        "q": searchQuery,
+        "api_key": APIkey,
+        "num": 20
     }
-
-    try:
-        response = requests.get(searchURL, params = parameters)
-        data = response.json()
-        return data.get('organic_results', [])
-
-    except Exception as e:
-        return {"Error": str(e)}
+    response = requests.get("https://serpapi.com/search", params=params)
     
+    if response.status_code == 200:
+        return response.json().get("organic_results", [])
+    else:
+        print(f"Failed to fetch data for {companyName} with query '{searchQuery}': {response.status_code}")
+        return []
 
-def ExtractFromSearchResults(data):
+def ExtractEmails(text):
+    return re.findall(emailPattern, text)
+
+def ExtractAddresses(text):
+    return re.findall(addressPattern, text)
+
+def ExtractPhoneNumbers(text):
+    return ["".join(num) for num in re.findall(phonePattern, text)]
+
+def ProcessResults(results, queryType):
     extractedData = []
-    for result in data:
-        snippet = result.get('snippet', "")
-        link = result.get('link', "")
-        title = result.get('title', "")
+    for result in results:
+        snippet = result.get("snippet", "")
+        title = result.get("title", "")
+        link = result.get("link", "")
+        text = snippet + " " + title
 
-        extractedData.append({
-            'Title': title,
-            'Link': link,
-            'Snippet': snippet,})
-        
+        if queryType == "email":
+            data = ExtractEmails(text)
+        elif queryType == "address":
+            data = ExtractAddresses(text)
+        elif queryType == "phone":
+            data = ExtractPhoneNumbers(text)
+        else:
+            data = text 
+
+        for item in set(data):
+            extractedData.append({
+                "queryType": queryType,
+                "data": item,
+                "source": link
+            })
+
     return extractedData
 
-def ExtractContactFromWebPage(url):
-    try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            emails = emailPattern.findall(response.text)
-            addresses = addressPattern.findall(response.text)
-            phoneNumbers = phonePattern.findall(response.text)
+def SearchCompaniesWithQueries(companies, queries):
+    allResults = []
+    for company in companies:
+        for query in queries:
+            print(f"Searching for {query} for {company}")
+            results = SearchResults(company, query)
+            extractedData = ProcessResults(results, query)
+            for data in extractedData:
+                allResults.append({
+                    "company": company,
+                    "query": query,
+                    "queryType": data["queryType"],
+                    "data": data["data"],
+                    "source": data["source"],
+                })
+            time.sleep(2)
+    return allResults
 
-            
 
-            return {
-                'Email': emails[0] if emails else "Not found",
-                'Address': addresses[0] if emails else "Not found", 
-                'Phone': phoneNumbers[0] if phoneNumbers else "Not found"
-            }
-        else:
-            return {'Email': 'Not found', 'Address': 'Not found', 'Phone': 'Not found'}
-    except Exception as e:
-        print(f"Error in ExtractContactFromWebPage for URL {url}: {e}")
-        return {'Email': 'Error', 'Address': 'Error', 'Phone': 'Error'}
+def SaveToCSV(data, filename = "SearchResults.csv"):
+    with open(filename, mode = "w", newline="") as file:
+        writer = csv.DictWriter(file, fieldnames=["company", "query", "queryType", "data", "source"])
+        writer.writeheader()
+        writer.writerows(data)
+    print(f"Search Results saved to {filename}")
 
-def SearchAndExtract(query):
-    searchResults = PerformSearch(query)
-    extractedData = ExtractFromSearchResults(searchResults)
-    for result in extractedData:
-        contactInfo = ExtractContactFromWebPage(result['Link'])
-        if contactInfo:
-            result.update(contactInfo)
-    return pd.DataFrame(extractedData)
 
-data = SearchAndExtract("Apple Inc")
-print(data)
+def PerformWebSearch (companies, queries):
+    results = SearchCompaniesWithQueries(companies, queries)
+    SaveToCSV(results)
 
-data.to_csv("AppleSearchResults.csv", index = False)
+companies = ["Google", "Facebook", "Microsoft"]
+queries = ["email", "address", "phone"]
+PerformWebSearch(companies, queries)
