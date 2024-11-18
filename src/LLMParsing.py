@@ -69,6 +69,8 @@ def ParseSearchResults(userPrompt, insights):
             ...
             ]
 
+            Always stick to the format, which is a list of dictionaries, even if there is only one dictionary in the list.
+
             ### Task:
             1. Focus on the query and extract the most relevant information directly answering it.
             - For example, if the query is "email address," return the extracted email(s).
