@@ -4,7 +4,7 @@ from langchain_groq import ChatGroq
 import os
 from groq import Groq
 import json
-from WebSearchForLLM import GetInsights
+from src.WebSearchForLLM import GetInsights
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -96,4 +96,4 @@ def LLMFunction(userPrompt):
     insights = ProcessUserPromptAndGoogleSearch(userPrompt)
     return ParseSearchResults(userPrompt, insights)
 
-print(LLMFunction("Director of Thapar Institute of Engineering and Technology"))
+#print(LLMFunction("Director of Thapar University"))
