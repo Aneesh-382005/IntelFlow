@@ -70,4 +70,4 @@ Follow these steps to enable Google Sheets integration using a Google Cloud Serv
 
 
 
-# Loom Video : 
+# Loom Video : https://www.loom.com/share/051c4caa401b482ba4f0f027e99fa106?sid=c0f8a0e1-5abf-4d9c-a9c8-375597b6d393
