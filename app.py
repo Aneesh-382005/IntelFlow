@@ -11,6 +11,8 @@ if 'data' not in st.session_state:
     st.session_state.data = None
 if 'search_prompt' not in st.session_state:
     st.session_state.search_prompt = ""
+if 'search_result' not in st.session_state:
+    st.session_state.search_result = None
 
 dataSource = st.radio("Select the data source", ["Upload File", "Google Sheet"])
 
@@ -40,19 +42,29 @@ if st.session_state.data is not None and not st.session_state.data.empty:
             if st.session_state.data is None or st.session_state.search_prompt.strip() == "":
                 st.error("Please upload data and enter a valid search prompt.")
             else:
-                st.write("Searching for information...")
-                result = LLMFunction(st.session_state.search_prompt)
-                st.write(result)
-
+                if st.session_state.search_result is None:
+                    st.write("Searching for information...")
+                    result = LLMFunction(st.session_state.search_prompt)
+                    st.write(result) 
+                    st.session_state.search_result = result 
+                else:
+                    st.write("Result already found, using stored data.")
+                    result = st.session_state.search_result 
+                
                 if result is not None:
                     cleanedResponse = CleanedResponse(result)
-                    if cleanedResponse is not None:
-                        if st.button("Save Results to CSV"):
-                            CSVData = cleanedResponse.to_csv(index=False)
-                            st.download_button(
-                                label="Download CSV",
-                                data=CSVData,
-                                file_name="results.csv",
-                                mime="text/csv"
-                            )
-                            st.success("Thank You")
+                    st.write(cleanedResponse) 
+
+                    if cleanedResponse is not None and not cleanedResponse.empty:
+                        st.write("Cleaned Response:")
+                        
+                        CSVData = cleanedResponse.to_csv(index=False)
+                        st.download_button(
+                            label="Download CSV",
+                            data=CSVData,
+                            file_name="results.csv",
+                            mime="text/csv"
+                        )
+                        st.success("Thank You")
+                    else:
+                        st.error("No valid cleaned response was generated.")

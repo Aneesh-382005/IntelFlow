@@ -1,4 +1,8 @@
-streamlit
 pandas
-requests
+gspread
+oauth2client
 python-dotenv
+streamlit
+requests
+langchain-core
+langchain-groq
