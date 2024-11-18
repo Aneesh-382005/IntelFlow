@@ -5,10 +5,14 @@ import os
 from groq import Groq
 import json
 from WebSearchForLLM import GetInsights
+from dotenv import load_dotenv
 
+load_dotenv()
 groqLLM = os.getenv("GROQ_API_KEY")
 
-model = ChatGroq(model = "llama-3.1-70b-versatile", api_key = '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')
+
+
+model = ChatGroq(model = "llama-3.1-70b-versatile", api_key = groqLLM)
 
 def PassPrompt(userPrompt):
     messages = [
