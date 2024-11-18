@@ -35,3 +35,10 @@ elif dataSource == "Google Sheet":
             if st.button("Load Google Sheet"):
                 data = LoadGoogleSheetData(sheetsService, sheetID, sheetRange)
                 st.write("Data Preview: ", data.head())
+
+                column = st.selectbox("Select the column with Company Names", data.columns)
+
+                searchPrompt = st.text_input("Enter your prompt (e.g., 'Get the email of {company}')")
+
+                if st.button("Search"):
+                    st.write("Searching for information... ")

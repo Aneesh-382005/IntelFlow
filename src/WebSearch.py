@@ -19,7 +19,7 @@ def SearchResults(companyName, searchQuery=None):
         "engine": "google",
         "q": searchQuery,
         "api_key": APIkey,
-        "num": 20
+        "num": 10
     }
     response = requests.get("https://serpapi.com/search", params=params)
     
@@ -59,6 +59,7 @@ def ProcessResults(results, queryType):
             extractedData.append({
                 "queryType": queryType,
                 "data": item,
+                "snippet": snippet,
                 "source": link
             })
 
@@ -83,9 +84,9 @@ def SearchCompaniesWithQueries(companies, queries):
     return allResults
 
 
-def SaveToCSV(data, filename = "SearchResults.csv"):
-    with open(filename, mode = "w", newline="") as file:
-        writer = csv.DictWriter(file, fieldnames=["company", "query", "queryType", "data", "source"])
+def SaveToCSV(data, filename = r"Data\SearchResults.csv"):
+    with open(filename, mode = "w", newline="", encoding = "utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=["company", "query", "queryType", "data", "snippet", "source"])
         writer.writeheader()
         writer.writerows(data)
     print(f"Search Results saved to {filename}")
@@ -96,5 +97,5 @@ def PerformWebSearch (companies, queries):
     SaveToCSV(results)
 
 companies = ["Google", "Facebook", "Microsoft"]
-queries = ["email", "address", "phone"]
+queries = ["email", "address", "phone", "CEO Contact"]
 PerformWebSearch(companies, queries)
