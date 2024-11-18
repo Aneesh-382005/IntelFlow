@@ -72,7 +72,7 @@ Follow these steps to enable Google Sheets integration using a Google Cloud Serv
 
 ## Porential Improvements
 - Google oAuth integration
-- Multiple Company Search (Avoided due to Search API limits)
+- Multiple Company Search (Avoided due to Search API limits, P.S. I ran out of searches)
 - Editing the Dataset Provided (Avoided for not due to cell uncertainities, potentially merged columns)
 - Additions of Scrapers such as bs4 for more extensive search
 
